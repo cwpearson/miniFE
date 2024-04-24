@@ -14,6 +14,7 @@ for your study. Different implementations are provided by the basic
 then, various versions of OpenMP and CUDA have been added.
 
 You should edit the Makefile found in selected implementation.
+(Alternatively, the kokkos implementation supports CMake. See kokkos/README.md)
 
 As a minimum set the CXX and CC variables to point to your C++ and C
 compiler respectively.
