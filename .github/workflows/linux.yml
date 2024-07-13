@@ -1,0 +1,48 @@
+# This starter workflow is for a CMake project running on a single platform. There is a different starter workflow if you need cross-platform coverage.
+# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-multi-platform.yml
+name: CMake on a single platform
+
+on:
+  pull_request:
+    paths-ignore:
+    - README.md
+    types: [ opened, reopened, synchronize]
+  workflow_dispatch:
+  
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  Kokkos-Master:
+    env:
+      KOKKOS_SRC: ${{ github.workspace }}/_deps/kokkos
+      KOKKOS_BUILD: ${{ github.workspace }}/_deps/kokkos-build
+      KOKKOS_INSTALL: ${{ github.workspace }}/_deps/kokkos-install
+      MINIFE_SRC: ${{ github.workspace }}
+      MINIFE_BUILD: ${{ github.workspace }}/build
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Clone Kokkos
+      run: |
+        git clone --branch master --depth 1 https://github.com/kokkos/kokkos.git "$KOKKOS_SRC"
+    - name: Configure Kokkos
+      run: |
+        cmake -S "$KOKKOS_SRC" -B "$KOKKOS_BUILD" -DCMAKE_INSTALL_PREFIX="$KOKKOS_INSTALL" -DKokkos_ENABLE_OPENMP=ON -DKokkos_ARCH_NATIVE=ON
+    - name: Build & Install Kokkos
+      run: |
+        cmake --build "$KOKKOS_BUILD" --parallel $(nproc) -t install
+    - name: Configure miniFE
+      run: cmake -S "$MINIFE_SRC/kokkos" -B "$MINIFE_BUILD" -DKokkos_ROOT="$KOKKOS_INSTALL" -DMINIFE_ENABLE_MPI=OFF
+
+    - name: Build
+      run: cmake --build "$MINIFE_BUILD"
+
+    - name: Test miniFE
+      run: |
+        #ctest -V --test-dir "$MINIFE_BUILD" --rerun-failed --output-on-failure
+        ${MINIFE_BUILD}/miniFE.kokkos verify_solution=1
+
