@@ -1674,7 +1674,7 @@ struct MV_MultiplyFunctor {
     aVector b;
     int numVecs = x.extent(1);
 
-    if(numVecs==1)
+    if(numVecs==1) {
     if (s_b == 0) {
       if (s_a == 0)
         return MV_Multiply (a, y, a, A, x, 0, 0);
@@ -1746,6 +1746,7 @@ struct MV_MultiplyFunctor {
         Kokkos::deep_copy (a, h_a);
         return MV_Multiply (b, y, a, A, x, 2, 2);
       }
+    }
     }
   }
 
