@@ -33,7 +33,7 @@
 
 #include <MemInitOp.hpp>
 #include <Kokkos_Types.hpp>
-#include <Kokkos_Vector.hpp>
+#include <Minife_Kokkos_Vector.hpp>
 namespace miniFE {
 
 

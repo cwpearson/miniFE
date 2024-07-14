@@ -39,7 +39,7 @@
 #include <outstream.hpp>
 
 #include <TypeTraits.hpp>
-#include <Kokkos_Vector.hpp>
+#include <Minife_Kokkos_Vector.hpp>
 namespace miniFE {
 
 template<typename MatrixType,
