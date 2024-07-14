@@ -52,7 +52,7 @@ compute_matrix_stats(const MatrixType& A, int myproc, int numprocs, YAML_Doc& yd
   GlobalOrdinal min_nrows = 0, max_nrows = 0, global_nrows = 0;
   int min_proc = 0, max_proc = 0;
 
-  GlobalOrdinal local_nrows = A.rows.size();
+  GlobalOrdinal local_nrows = A.rows.extent(0);
 
   get_global_min_max(local_nrows, global_nrows, min_nrows, min_proc,
                      max_nrows, max_proc);

@@ -183,8 +183,8 @@ driver(const Box& global_box, Box& my_box,
                      generate_matrix_structure(mesh, A),
                      gen_structure, t_total);
 
-  GlobalOrdinal local_nrows = A.rows.size();
-  GlobalOrdinal my_first_row = local_nrows > 0 ? A.rows[0] : -1;
+  GlobalOrdinal local_nrows = A.rows.extent(0);
+  GlobalOrdinal my_first_row = local_nrows > 0 ? A.rows.h_view(0) : -1;
 
   Vector<Scalar,LocalOrdinal,GlobalOrdinal> b(my_first_row, local_nrows);
   Vector<Scalar,LocalOrdinal,GlobalOrdinal> x(my_first_row, local_nrows);

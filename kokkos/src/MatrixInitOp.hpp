@@ -77,11 +77,11 @@ struct MatrixInitOp<miniFE::CSRMatrix<MINIFE_SCALAR,MINIFE_LOCAL_ORDINAL,MINIFE_
      global_nodes_z(global_nz),
      global_nrows(global_n_rows),
      mesh(&input_mesh),
-     dest_rows(&matrix.rows[0]),
+     dest_rows(&matrix.rows.h_view(0)),
      dest_rowoffsets(&matrix.row_offsets[0]),
      dest_cols(&matrix.packed_cols[0]),
      dest_coefs(&matrix.packed_coefs[0]),
-     n(matrix.rows.size())
+     n(matrix.rows.extent(0))
   {
     if (matrix.packed_cols.span() != matrix.packed_coefs.span()) {
       std::cout<<"Warning, packed_cols.span ("<<matrix.packed_cols.span()<<") != "

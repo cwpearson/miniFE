@@ -69,7 +69,7 @@ CSRMatrix {
   typedef CSRMatrix<Scalar,LocalOrdinal,GlobalOrdinal,host_device_type> HostMirror;
   typedef Device device_type;
   bool                       has_local_indices;
-  Kokkos::DualView<GlobalOrdinal,Device> rows;
+  Kokkos::DualView<GlobalOrdinal*,Device> rows;
   Kokkos::vector<LocalOrdinal,Device>  row_offsets;
   Kokkos::vector<LocalOrdinal,Device>  row_offsets_external;
   Kokkos::vector<GlobalOrdinal,Device> packed_cols;
@@ -112,9 +112,9 @@ CSRMatrix {
   {
     ptrdiff_t local_row = -1;
     //first see if we can get the local-row index using fast direct lookup:
-    if (rows.size() >= 1) {
-      ptrdiff_t idx = row - rows[0];
-      if (idx < rows.size() && rows[idx] == row) {
+    if (rows.extent(0) >= 1) {
+      ptrdiff_t idx = row - rows.h_view(0);
+      if (idx < rows.extent(0) && rows.h_view(idx) == row) {
         local_row = idx;
       }
     }
@@ -122,16 +122,16 @@ CSRMatrix {
     //if we didn't get the local-row index using direct lookup, try a
     //more expensive binary-search:
     if (local_row == -1) {
-      typename Kokkos::vector<GlobalOrdinal,Device>::iterator row_iter =
-          std::lower_bound(rows.begin(), rows.end(), row);
+      auto row_iter =
+          std::lower_bound(&rows.h_view(0), &rows.h_view(rows.extent(0)), row);
   
       //if we still haven't found row, it's not local so jump out:
-      if (row_iter == rows.end() || *row_iter != row) {
+      if (row_iter == &rows.h_view(rows.extent(0)) || *row_iter != row) {
         row_length = 0;
         return;
       }
   
-      local_row = row_iter - rows.begin();
+      local_row = row_iter - &rows.h_view(0);
     }
 
     LocalOrdinalType offset = row_offsets[local_row];
@@ -141,7 +141,7 @@ CSRMatrix {
   }
 
   void host_to_device(){
-	  rows.modify<Device>();
+	  rows.template modify<Device>();
 	  row_offsets.host_to_device();
 	  row_offsets_external.host_to_device();
 	  packed_cols.host_to_device();
@@ -159,7 +159,7 @@ CSRMatrix {
   }
 
   void on_device(){
-	  rows.on_device();
+	  rows.template modify<Device>();
 	  row_offsets.on_device();
 	  row_offsets_external.on_device();
 	  packed_cols.on_device();

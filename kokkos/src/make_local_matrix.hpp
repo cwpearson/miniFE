@@ -428,7 +428,7 @@ make_local_matrix(MatrixType& A)
   A.num_cols = local_nrow + num_external;
 
 #else
-  A.num_cols = A.rows.size();
+  A.num_cols = A.rows.extent(0);
 #endif
 
   A.has_local_indices = true;
