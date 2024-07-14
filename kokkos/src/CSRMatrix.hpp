@@ -141,7 +141,7 @@ CSRMatrix {
   }
 
   void host_to_device(){
-	  rows.template modify<Device>();
+    Kokkos::deep_copy(rows.d_view, rows.h_view);
 	  row_offsets.host_to_device();
 	  row_offsets_external.host_to_device();
 	  packed_cols.host_to_device();
