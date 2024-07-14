@@ -55,7 +55,7 @@
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_StaticCrsGraph.hpp>
-#include <Kokkos_Vector.hpp>
+#include <Minife_Kokkos_Vector.hpp>
 
 #ifdef KOKKOS_USE_CUSPARSE
 #  include <cusparse_v2.h>
