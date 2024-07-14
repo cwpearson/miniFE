@@ -1299,7 +1299,7 @@ struct MV_MultiplyFunctor {
 	    int doalpha,
 	    int dobeta>
   void
-  MV_Multiply (typename std::enable_if<DomainVector::Rank == 2, const CoeffVector1>::type& betav,
+  MV_Multiply (typename std::enable_if<DomainVector::rank == 2, const CoeffVector1>::type& betav,
 	       const RangeVector &y,
 	       const CoeffVector2 &alphav,
 	       const TCrsMatrix &A,
@@ -1410,7 +1410,7 @@ struct MV_MultiplyFunctor {
 	   int doalpha,
 	   int dobeta>
   void
-  MV_Multiply (typename std::enable_if<DomainVector::Rank == 1, const CoeffVector1>::type& betav,
+  MV_Multiply (typename std::enable_if<DomainVector::rank == 1, const CoeffVector1>::type& betav,
 	       const RangeVector &y,
 	       const CoeffVector2 &alphav,
 	       const TCrsMatrix& A,
