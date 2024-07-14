@@ -518,8 +518,8 @@ impose_dirichlet(typename MatrixType::ScalarType prescribed_value,
   typedef typename MatrixType::LocalOrdinalType LocalOrdinal;
   typedef typename MatrixType::ScalarType Scalar;
 
-  GlobalOrdinal first_local_row = A.rows.size()>0 ? A.rows[0] : 0;
-  GlobalOrdinal last_local_row  = A.rows.size()>0 ? A.rows[A.rows.size()-1] : -1;
+  GlobalOrdinal first_local_row = A.rows.extent(0)>0 ? A.rows[0] : 0;
+  GlobalOrdinal last_local_row  = A.rows.extent(0)>0 ? A.rows[A.rows.size()-1] : -1;
 
   impose_dirichlet_functorA<MatrixType,VectorType,typename MatrixType::HostMirror::device_type> fA(prescribed_value,A,b,bc_rows);
   Kokkos::parallel_for("impose_dirichlet_A<Host>",bc_rows.size(),fA);

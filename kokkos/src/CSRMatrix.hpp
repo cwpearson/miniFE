@@ -69,7 +69,7 @@ CSRMatrix {
   typedef CSRMatrix<Scalar,LocalOrdinal,GlobalOrdinal,host_device_type> HostMirror;
   typedef Device device_type;
   bool                       has_local_indices;
-  Kokkos::vector<GlobalOrdinal,Device> rows;
+  Kokkos::DualView<GlobalOrdinal,Device> rows;
   Kokkos::vector<LocalOrdinal,Device>  row_offsets;
   Kokkos::vector<LocalOrdinal,Device>  row_offsets_external;
   Kokkos::vector<GlobalOrdinal,Device> packed_cols;
@@ -141,7 +141,7 @@ CSRMatrix {
   }
 
   void host_to_device(){
-	  rows.host_to_device();
+	  rows.modify<Device>();
 	  row_offsets.host_to_device();
 	  row_offsets_external.host_to_device();
 	  packed_cols.host_to_device();

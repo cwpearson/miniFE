@@ -103,7 +103,7 @@ cg_solve(OperatorType& A,
     return;
   }
 
-  size_t nrows = A.rows.size();
+  size_t nrows = A.rows.extent(1);
   LocalOrdinalType ncols = A.num_cols;
 
   VectorType r(b.startIndex, nrows);
