@@ -38,7 +38,7 @@
 #include <SparseMatrix_functions.hpp>
 #include <box_utils.hpp>
 #include <utils.hpp>
-#include <Kokkos_Vector.hpp>
+#include <Minife_Kokkos_Vector.hpp>
 #ifdef HAVE_MPI
 #include <mpi.h>
 #endif
