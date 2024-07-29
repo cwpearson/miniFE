@@ -545,10 +545,12 @@ template<typename MatrixType,
          typename VectorType>
 void matvec(MatrixType& A, VectorType& x, VectorType& y)
 {
+  Kokkos::Profiling::pushRegion("matvec");
   exchange_externals(A, x);
 
   MV_Multiply(y.coefs.d_view,A.mat,x.coefs.d_view);
   typename MatrixType::device_type().fence();
+  Kokkos::Profiling::popRegion();
 }
 
 }//namespace miniFE
