@@ -80,7 +80,9 @@
     std::cout.flush();              \
   }                                 \
   timer_type rtf_t0 = mytimer();    \
+  Kokkos::Profiling::pushRegion(msg); \
   fn;                               \
+  Kokkos::Profiling::popRegion();   \
   time_inc = mytimer() - rtf_t0;    \
   time_total += time_inc;           \
   if (myproc==0) {                  \
@@ -223,8 +225,7 @@ driver(const Box& global_box, Box& my_box,
 #endif
 
   //Transform global indices to local, set up communication information:
-
-   timer_type make_local_time;
+  timer_type make_local_time;
   RUN_TIMED_FUNCTION("making matrix indices local...",
                      make_local_matrix(A),
                      make_local_time, t_total);
@@ -261,8 +262,10 @@ driver(const Box& global_box, Box& my_box,
     std::cout << "ERROR, matvec with overlapping comm/comp is not implemented in MiniFE/Kokkos."<<std::endl;
   }
   else {
+    Kokkos::Profiling::pushRegion("cg_solve");
     cg_solve(A, b, x, max_iters, tol,
            num_iters, rnorm, cg_times);
+    Kokkos::Profiling::popRegion();
     if (myproc == 0) {
       std::cout << "Final Resid Norm: " << rnorm << std::endl;
     }
@@ -277,7 +280,9 @@ driver(const Box& global_box, Box& my_box,
         if (verify_whole_domain) std::cout << "verifying solution..." << std::endl;
         else std::cout << "verifying solution at ~ (0.5, 0.5, 0.5) ..." << std::endl;
       }
+      Kokkos::Profiling::pushRegion("verify_solution");
       verify_result = verify_solution(mesh, x, tolerance, verify_whole_domain);
+      Kokkos::Profiling::popRegion();
     }
   }
 
