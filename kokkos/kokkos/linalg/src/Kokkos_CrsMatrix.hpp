@@ -362,7 +362,7 @@ public:
              OrdinalType* cols,
              bool pad = false)
   {
-    import (label, nrows, ncols, annz, val, rows, cols);
+    import_op (label, nrows, ncols, annz, val, rows, cols);
 
     // FIXME (mfh 09 Aug 2013) Specialize this on the Device type.
     // Only use cuSPARSE for the Cuda Device.
@@ -442,7 +442,7 @@ public:
   }
   
   void
-  import (const std::string &label,
+  import_op (const std::string &label,
           OrdinalType nrows,
           OrdinalType ncols,
           OrdinalType annz,
@@ -635,7 +635,7 @@ private:
 template< typename ScalarType , typename OrdinalType, class Device, class MemoryTraits, typename SizeType >
 void
 CrsMatrix<ScalarType , OrdinalType, Device, MemoryTraits, SizeType >::
-import (const std::string &label,
+import_op (const std::string &label,
         OrdinalType nrows,
         OrdinalType ncols,
         OrdinalType annz,
@@ -800,7 +800,7 @@ generate (const std::string &label)
     std::sort(&h_entries_[i], &h_entries_[i+1]);
 
   // generate the matrix
-  import(label, nrows, nrows, nnz, NULL, &rows_[0], &h_entries_[0]);
+  import_op(label, nrows, nrows, nnz, NULL, &rows_[0], &h_entries_[0]);
 
 }
 
