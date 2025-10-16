@@ -55,8 +55,13 @@ struct err_info {
 template<typename VectorType>
 int
 verify_solution(const simple_mesh_description<typename VectorType::GlobalOrdinalType>& mesh,
-                const VectorType& x, double tolerance, bool verify_whole_domain = false)
+                VectorType& x, // can't be const, need to sync
+                double tolerance, bool verify_whole_domain = false)
 {
+
+  // make sure host-side x is up to date
+  x.coefs.template sync<typename decltype(x.coefs)::t_host::device_type>();
+
   typedef typename VectorType::GlobalOrdinalType GlobalOrdinal;
   typedef typename VectorType::ScalarType Scalar;
 
