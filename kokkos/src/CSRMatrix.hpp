@@ -32,9 +32,6 @@
 #include <cstddef>
 #include <vector>
 #include <algorithm>
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
 
 #include <Kokkos_Types.hpp>
 #include <Kokkos_CrsMatrix.hpp>
@@ -52,9 +49,9 @@ CSRMatrix {
      rows(), row_offsets(), row_offsets_external(),
      packed_cols(), packed_coefs(),
      num_cols(0)
-#ifdef HAVE_MPI
+#ifdef HAVE_KOKKOS_COMM
      ,external_index(), external_local_index(), elements_to_send(),
-      neighbors(), recv_length(), send_length(), send_buffer(), request()
+      neighbors(), recv_length(), send_length(), send_buffer()
 #endif
   {
   }
@@ -82,7 +79,7 @@ CSRMatrix {
 	  mat = Kokkos_Matrix("A",row_offsets.size()-1,num_cols,row_offsets(row_offsets.size()-1),packed_coefs.d_view,row_offsets.d_view,packed_cols.d_view);
   };
 
-#ifdef HAVE_MPI
+#ifdef HAVE_KOKKOS_COMM
   Kokkos::vector<GlobalOrdinal,Device> external_index;
   Kokkos::vector<GlobalOrdinal,Device> external_local_index;
   Kokkos::vector<GlobalOrdinal,Device> elements_to_send;
@@ -90,7 +87,6 @@ CSRMatrix {
   Kokkos::vector<LocalOrdinal,Device>  recv_length;
   Kokkos::vector<LocalOrdinal,Device>  send_length;
   Kokkos::vector<Scalar,Device>        send_buffer;
-  std::vector<MPI_Request>   request;
 #endif
 
   size_t num_nonzeros() const
@@ -147,7 +143,7 @@ CSRMatrix {
 	  packed_cols.host_to_device();
 	  packed_coefs.host_to_device();
 
-	#ifdef HAVE_MPI
+	#ifdef HAVE_KOKKOS_COMM
 	  external_index.host_to_device();
 	  external_local_index.host_to_device();
 	  elements_to_send.host_to_device();
@@ -165,7 +161,7 @@ CSRMatrix {
 	  packed_cols.on_device();
 	  packed_coefs.on_device();
 
-	#ifdef HAVE_MPI
+	#ifdef HAVE_KOKKOS_COMM
 	  external_index.on_device();
 	  external_local_index.on_device();
 	  elements_to_send.on_device();
@@ -182,4 +178,3 @@ CSRMatrix {
 }//namespace miniFE
 
 #endif
-

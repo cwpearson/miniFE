@@ -43,7 +43,10 @@ namespace miniFE {
 
 template<typename MatrixType>
 size_t
-compute_matrix_stats(const MatrixType& A, int myproc, int numprocs, YAML_Doc& ydoc)
+compute_matrix_stats(const MatrixType& A,
+                     int myproc,
+                     int numprocs,
+                     YAML_Doc& ydoc)
 {
   typedef typename MatrixType::GlobalOrdinalType GlobalOrdinal;
   typedef typename MatrixType::LocalOrdinalType LocalOrdinal;
@@ -113,4 +116,3 @@ compute_matrix_stats(const MatrixType& A, int myproc, int numprocs, YAML_Doc& yd
 }//namespace miniFE
 
 #endif
-

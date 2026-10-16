@@ -38,10 +38,6 @@
 #include <box_utils.hpp>
 #include <utils.hpp>
 
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
-
 namespace miniFE {
 
 template<typename Scalar>
@@ -153,11 +149,10 @@ std::cout<<"("<<x<<","<<y<<","<<z<<") row "<<rows[i]<<": computed: "<<computed_s
   }
 
   Scalar local_max_err = max_error.err;
-  Scalar global_max_err = 0;
-#ifdef HAVE_MPI
-  MPI_Allreduce(&local_max_err, &global_max_err, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-#else
-  global_max_err = local_max_err;
+  Scalar global_max_err = local_max_err;
+
+#ifdef HAVE_KOKKOS_COMM
+  global_max_err = allreduce_scalar(local_max_err, KokkosComm::Max{});
 #endif
 
   if (local_max_err == global_max_err) {
@@ -181,4 +176,3 @@ std::cout<<"("<<x<<","<<y<<","<<z<<") row "<<rows[i]<<": computed: "<<computed_s
 }//namespace miniFE
 
 #endif
-

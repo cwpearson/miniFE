@@ -31,10 +31,6 @@
 #include <sstream>
 #include <fstream>
 
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
-
 #ifdef MINIFE_HAVE_TPI
 #include <TPI.h>
 #endif
@@ -84,12 +80,12 @@ void get_parameters(int argc, char** argv, Parameters& params)
 //-------------------------------------------------------------
 void broadcast_parameters(Parameters& params)
 {
-#ifdef HAVE_MPI
+#ifdef HAVE_KOKKOS_COMM
   const int num_int_params = 13;
   int iparams[num_int_params] = {params.nx, params.ny, params.nz, params.numthreads, params.mv_overlap_comm_comp, params.use_locking,
 		     params.elem_group_size, params.use_elem_mat_fields, params.verify_solution,
 		     params.device, params.num_devices,params.skip_device,params.numa};
-  MPI_Bcast(&iparams[0], num_int_params, MPI_INT, 0, MPI_COMM_WORLD);
+  broadcast(&iparams[0], num_int_params);
   params.nx = iparams[0];
   params.ny = iparams[1];
   params.nz = iparams[2];
@@ -105,32 +101,9 @@ void broadcast_parameters(Parameters& params)
   params.numa = iparams[12];
 
   float fparams[1] = {params.load_imbalance};
-  MPI_Bcast(&fparams[0], 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  broadcast(&fparams[0], 1);
   params.load_imbalance = fparams[0];
-
-#endif
-}
-
-//-------------------------------------------------------------
-void initialize_mpi(int argc, char** argv, int& numprocs, int& myproc)
-{
-#ifdef HAVE_MPI
-  MPI_Init(&argc, &argv);
-  MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-  MPI_Comm_rank(MPI_COMM_WORLD, &myproc);
-#else
-  numprocs = 1;
-  myproc = 0;
-#endif
-}
-
-//-------------------------------------------------------------
-void finalize_mpi()
-{
-#ifdef HAVE_MPI
-  MPI_Finalize();
 #endif
 }
 
 }//namespace miniFE
-

@@ -51,10 +51,6 @@
 #include <LockingMatrix.hpp>
 #endif
 
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
-
 namespace miniFE {
 
 template<typename MatrixType>
@@ -107,11 +103,8 @@ void write_matrix(const std::string& filename,
   typedef typename MatrixType::GlobalOrdinalType GlobalOrdinalType;
   typedef typename MatrixType::ScalarType ScalarType;
 
-  int numprocs = 1, myproc = 0;
-#ifdef HAVE_MPI
-  MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-  MPI_Comm_rank(MPI_COMM_WORLD, &myproc);
-#endif
+  int numprocs = num_ranks();
+  int myproc = this_rank();
 
   std::ostringstream osstr;
   osstr << filename << "." << numprocs << "." << myproc;
@@ -137,8 +130,8 @@ void write_matrix(const std::string& filename,
         }
       }
     }
-#ifdef HAVE_MPI
-    MPI_Barrier(MPI_COMM_WORLD);
+#ifdef HAVE_KOKKOS_COMM
+    sync_ranks();
 #endif
   }
 }
@@ -303,7 +296,7 @@ parallel_memory_overhead_MB(const MatrixType& A)
   typedef typename MatrixType::LocalOrdinalType LocalOrdinal;
   double mem_MB = 0;
 
-#ifdef HAVE_MPI
+#ifdef HAVE_KOKKOS_COMM
   double invMB = 1.0/(1024*1024);
   mem_MB = invMB*A.external_index.size()*sizeof(GlobalOrdinal);
   mem_MB += invMB*A.external_local_index.size()*sizeof(GlobalOrdinal);
@@ -313,7 +306,7 @@ parallel_memory_overhead_MB(const MatrixType& A)
   mem_MB += invMB*A.send_length.size()*sizeof(LocalOrdinal);
 
   double tmp = mem_MB;
-  MPI_Allreduce(&tmp, &mem_MB, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  mem_MB = allreduce_scalar(tmp, KokkosComm::Sum{});
 #endif
 
   return mem_MB;
@@ -556,4 +549,3 @@ void matvec(MatrixType& A, VectorType& x, VectorType& y)
 }//namespace miniFE
 
 #endif
-

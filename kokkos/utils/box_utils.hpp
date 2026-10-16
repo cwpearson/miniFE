@@ -32,10 +32,7 @@
 #include <set>
 #include <map>
 
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
-
+#include <comm.hpp>
 #include <TypeTraits.hpp>
 #include <Box.hpp>
 
@@ -243,15 +240,16 @@ void create_map_id_to_row(int global_nx, int global_ny, int global_nz,
   GlobalOrdinal my_first_row = 0;
   typename std::vector<GlobalOrdinal> global_offsets;
   std::vector<int> all_boxes;
-  int numprocs = 1, myproc = 0;
-#ifdef HAVE_MPI
-  MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-  MPI_Comm_rank(MPI_COMM_WORLD, &myproc);
+  int numprocs = 1;
+  int myproc = 0;
+
+#ifdef HAVE_KOKKOS_COMM
+  numprocs = num_ranks();
+  myproc = this_rank();
 
   GlobalOrdinal local_num_ids = num_my_ids;
   global_offsets.resize(numprocs);
-  MPI_Datatype mpi_dtype = TypeTraits<GlobalOrdinal>::mpi_type();
-  MPI_Allgather(&local_num_ids, 1, mpi_dtype, &global_offsets[0], 1, mpi_dtype, MPI_COMM_WORLD);
+  allgather(&local_num_ids, 1, &global_offsets[0]);
   GlobalOrdinal offset = 0;
   for(int i=0; i<numprocs; ++i) {
     GlobalOrdinal tmp = global_offsets[i];
@@ -262,8 +260,8 @@ void create_map_id_to_row(int global_nx, int global_ny, int global_nz,
   my_first_row = global_offsets[myproc];
 
   all_boxes.resize(6*numprocs);
-  int* local_box_ranges = const_cast<int*>(&box.ranges[0]);
-  MPI_Allgather(local_box_ranges, 6, MPI_INT, &all_boxes[0], 6, MPI_INT, MPI_COMM_WORLD);
+  const int* local_box_ranges = &box.ranges[0];
+  allgather(local_box_ranges, 6, &all_boxes[0]);
 #endif
 
   if (all_ids.size() > 0) {
@@ -317,4 +315,3 @@ void create_map_id_to_row(int global_nx, int global_ny, int global_nz,
 }//namespace miniFE
 
 #endif
-

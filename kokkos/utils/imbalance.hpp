@@ -30,10 +30,6 @@
 
 #include <cmath>
 
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
-
 #include <box_utils.hpp>
 #include <utils.hpp>
 #include <YAML_Doc.hpp>
@@ -57,11 +53,8 @@ compute_imbalance(const Box& global_box,
                   YAML_Doc& doc,
                   bool record_in_doc)
 {
-  int numprocs = 1, myproc = 0;
-#ifdef HAVE_MPI
-  MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-  MPI_Comm_rank(MPI_COMM_WORLD, &myproc);
-#endif
+  int numprocs = num_ranks();
+  int myproc = this_rank();
 
   GlobalOrdinal local_nrows = get_num_ids<GlobalOrdinal>(local_box);
   GlobalOrdinal min_nrows = 0, max_nrows = 0, global_nrows = 0;
@@ -171,11 +164,8 @@ add_imbalance(const Box& global_box,
               float imbalance,
               YAML_Doc& doc)
 {
-  int numprocs = 1, myproc = 0;
-#ifdef HAVE_MPI
-  MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-  MPI_Comm_rank(MPI_COMM_WORLD, &myproc);
-#endif
+  int numprocs = num_ranks();
+  int myproc = this_rank();
 
   if (numprocs == 1) {
     return;
@@ -183,7 +173,7 @@ add_imbalance(const Box& global_box,
 
   float cur_imbalance = 0, cur_std_dev = 0;
   compute_imbalance<GlobalOrdinal>(global_box, local_box,
-                                  cur_imbalance, cur_std_dev, doc, false);
+                                   cur_imbalance, cur_std_dev, doc, false);
 
   while (cur_imbalance < imbalance) {
     GlobalOrdinal local_nrows = get_num_ids<GlobalOrdinal>(local_box);
@@ -219,10 +209,8 @@ add_imbalance(const Box& global_box,
                         local_box[X][0], local_box[X][1],
                         local_box[Y][0], local_box[Y][1],
                         local_box[Z][0], local_box[Z][1]};
-#ifdef HAVE_MPI
-    MPI_Bcast(&grow_info[0], 8, MPI_INT, max_proc, MPI_COMM_WORLD);
-    MPI_Bcast(&shrink_info[0], 8, MPI_INT, min_proc, MPI_COMM_WORLD);
-#endif
+    broadcast(&grow_info[0], 8, max_proc);
+    broadcast(&shrink_info[0], 8, min_proc);
 
     int grow_axis = grow_info[0];
     int grow_end = grow_info[1];
@@ -257,13 +245,11 @@ add_imbalance(const Box& global_box,
       }
     }
 
-#ifdef HAVE_MPI
     int statusints[2] = { grow_status ? 0 : 1, shrink_status ? 0 : 1 };
     int globalstatus[2] = { 0, 0 };
-    MPI_Allreduce(&statusints, &globalstatus, 2, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    allreduce(&statusints[0], &globalstatus[0], 2, KokkosComm::Sum{});
     grow_status = globalstatus[0]>0 ? false : true;
     shrink_status = globalstatus[1]>0 ? false : true;
-#endif
 
     if (grow_status == false && shrink_status == false) break;
 
@@ -295,4 +281,3 @@ add_imbalance(const Box& global_box,
 }//namespace miniFE
 
 #endif
-

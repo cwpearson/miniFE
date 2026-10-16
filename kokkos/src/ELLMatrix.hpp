@@ -32,9 +32,6 @@
 #include <cstddef>
 #include <vector>
 #include <algorithm>
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
 
 namespace miniFE {
 
@@ -49,9 +46,9 @@ ELLMatrix {
      cols(), coefs(),
      num_cols(0),
      num_cols_per_row(0)
-#ifdef HAVE_MPI
+#ifdef HAVE_KOKKOS_COMM
      ,external_index(), external_local_index(), elements_to_send(),
-      neighbors(), recv_length(), send_length(), send_buffer(), request()
+      neighbors(), recv_length(), send_length(), send_buffer()
 #endif
   {
   }
@@ -70,7 +67,7 @@ ELLMatrix {
   LocalOrdinal               num_cols;
   LocalOrdinal               num_cols_per_row;
 
-#ifdef HAVE_MPI
+#ifdef HAVE_KOKKOS_COMM
   std::vector<GlobalOrdinal> external_index;
   std::vector<GlobalOrdinal>  external_local_index;
   std::vector<GlobalOrdinal> elements_to_send;
@@ -78,7 +75,6 @@ ELLMatrix {
   std::vector<LocalOrdinal>  recv_length;
   std::vector<LocalOrdinal>  send_length;
   std::vector<Scalar>        send_buffer;
-  std::vector<MPI_Request>   request;
 #endif
 
   size_t num_nonzeros() const
@@ -137,4 +133,3 @@ ELLMatrix {
 }//namespace miniFE
 
 #endif
-

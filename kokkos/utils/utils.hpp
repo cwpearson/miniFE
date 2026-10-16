@@ -33,10 +33,7 @@
 #include <vector>
 #include <map>
 
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
-
+#include <comm.hpp>
 #include <TypeTraits.hpp>
 #include <Parameters.hpp>
 
@@ -45,10 +42,6 @@ namespace miniFE {
 void get_parameters(int argc, char** argv, Parameters& params);
 
 void broadcast_parameters(Parameters& params);
-
-void initialize_mpi(int argc, char** argv, int& numprocs, int& myproc);
-
-void finalize_mpi();
 
 template<typename Scalar>
 Scalar percentage_difference(Scalar value, Scalar average)
@@ -83,17 +76,16 @@ void get_global_min_max(GlobalOrdinal local_n,
 //will be returned on all processors.
 //
   int numprocs = 1, myproc = 0;
-#ifdef HAVE_MPI
-  MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-  MPI_Comm_rank(MPI_COMM_WORLD, &myproc);
+#ifdef HAVE_KOKKOS_COMM
+  numprocs = num_ranks();
+  myproc = this_rank();
 #endif
 
   std::vector<GlobalOrdinal> all_n(numprocs, 0);
   all_n[myproc] = local_n;
-#ifdef HAVE_MPI
   std::vector<GlobalOrdinal> tmp(all_n);
-  MPI_Datatype mpi_dtype = TypeTraits<GlobalOrdinal>::mpi_type();
-  MPI_Allreduce(&tmp[0], &all_n[0], numprocs, mpi_dtype, MPI_MAX, MPI_COMM_WORLD);
+#ifdef HAVE_KOKKOS_COMM
+  allreduce(tmp.data(), all_n.data(), static_cast<std::size_t>(numprocs), KokkosComm::Max{});
 #endif
 
   global_n = 0;
@@ -127,19 +119,11 @@ Scalar compute_std_dev_as_percentage(Scalar local_nrows,
 //Input argument local_nrows is really a integer, but taking it as a floating-point scalar is
 //harmless.
 //
-#ifdef HAVE_MPI
-  int numprocs = 1, myproc = 0;
-  MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-  MPI_Comm_rank(MPI_COMM_WORLD, &myproc);
-  MPI_Datatype mpi_dtype = TypeTraits<Scalar>::mpi_type();
-
-//If it's significantly more efficient, we may consider using MPI_Gather below instead of
-//MPI_Allgather. We really only need to compute std.dev. on proc 0...
-//
-//(But for now, use MPI_Allgather and compute on all procs.)
+#ifdef HAVE_KOKKOS_COMM
+  int numprocs = num_ranks();
 
   std::vector<Scalar> all_nrows(numprocs, 0);
-  MPI_Allgather(&local_nrows, 1, mpi_dtype, &all_nrows[0], 1, mpi_dtype, MPI_COMM_WORLD);
+  allgather(&local_nrows, 1, all_nrows.data());
 
   //turn all_nrows contents into deviations, add to sum-of-squares-of-deviations:
   Scalar sum_sqr_dev = 0;
@@ -158,6 +142,8 @@ Scalar compute_std_dev_as_percentage(Scalar local_nrows,
   std_dev *= 100;
   return std_dev;
 #else
+  (void)local_nrows;
+  (void)avg_nrows;
   return 0;
 #endif
 }
@@ -201,4 +187,3 @@ GlobalOrdinal find_row_for_id(GlobalOrdinal id,
 }//namespace miniFE
 
 #endif
-

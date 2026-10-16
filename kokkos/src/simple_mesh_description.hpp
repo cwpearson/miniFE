@@ -30,6 +30,7 @@
 // ************************************************************************
 //@HEADER
 
+#include <comm.hpp>
 #include <utils.hpp>
 #include <set>
 #include <map>
@@ -39,7 +40,8 @@ namespace miniFE {
 template<typename GlobalOrdinal, class Device = host_device_type>
 class simple_mesh_description {
 public:
-  simple_mesh_description(const Box& global_box_in, const Box& local_box_in)
+  simple_mesh_description(const Box& global_box_in,
+                          const Box& local_box_in)
   {
    Box local_node_box;
     for(int i=0; i<3; ++i) {

@@ -68,10 +68,6 @@
 #include <mytimer.hpp>
 #include <YAML_Doc.hpp>
 
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
-
 #define RUN_TIMED_FUNCTION(msg, fn, time_inc, time_total) \
 {                                   \
   if (myproc==0) {                  \
@@ -132,9 +128,9 @@ driver(const Box& global_box, Box& my_box,
   int global_nz = global_box[2][1];
 
   int numprocs = 1, myproc = 0;
-#ifdef HAVE_MPI
-  MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-  MPI_Comm_rank(MPI_COMM_WORLD, &myproc);
+#ifdef HAVE_KOKKOS_COMM
+  numprocs = num_ranks();
+  myproc = this_rank();
 #endif
 
   if (params.load_imbalance > 0) {
@@ -370,4 +366,3 @@ driver(const Box& global_box, Box& my_box,
 }//namespace miniFE
 
 #endif
-

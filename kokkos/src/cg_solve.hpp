@@ -62,8 +62,8 @@ bool breakdown(typename VectorType::ScalarType inner,
 //v and w are considered orthogonal if
 //  |inner| < 100 * ||v||_2 * ||w||_2 * epsilon
 
-  magnitude vnorm = std::sqrt(dot(v,v));
-  magnitude wnorm = std::sqrt(dot(w,w));
+  magnitude vnorm = std::sqrt(dot(v, v));
+  magnitude wnorm = std::sqrt(dot(w, w));
   return std::abs(inner) <= 100*vnorm*wnorm*std::numeric_limits<magnitude>::epsilon();
 }
 
@@ -93,10 +93,7 @@ cg_solve(OperatorType& A,
 
   timer_type t0 = 0, tWAXPY = 0, tDOT = 0, tMATVEC = 0, tMATVECDOT = 0;
 
-  int myproc = 0;
-#ifdef HAVE_MPI
-  MPI_Comm_rank(MPI_COMM_WORLD, &myproc);
-#endif
+  int myproc = this_rank();
 
   if (!A.has_local_indices) {
     std::cerr << "miniFE::cg_solve ERROR, A.has_local_indices is false, needs to be true. This probably means "

@@ -1,8 +1,12 @@
-cmake_minimum_required(VERSION 3.16 FATAL_ERROR) # same as Kokkos 4.3
+cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 
 option(MINIFE_ENABLE_MPI "Enable MPI support" ON)
 
 project(miniFE LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(NOT DEFINED MINIFE_SCALAR)
     set(MINIFE_SCALAR "double") # or float
@@ -15,6 +19,7 @@ if(NOT DEFINED MINIFE_GLOBAL_ORDINAL)
 endif()
 
 find_package(Kokkos REQUIRED)
+find_package(KokkosComm REQUIRED)
 if(MINIFE_ENABLE_MPI)
   find_package(MPI REQUIRED)
 else()
@@ -29,7 +34,7 @@ add_subdirectory(kokkos/linalg/src)
 add_subdirectory(utils)
 
 add_executable(miniFE.kokkos ${MINIFE_SRCS})
-target_link_libraries(miniFE.kokkos Kokkos::kokkos)
+target_link_libraries(miniFE.kokkos Kokkos::kokkos KokkosComm::KokkosComm)
 foreach(INCL_DIR ${MINIFE_INCL_DIRS})
   target_include_directories(miniFE.kokkos PRIVATE ${INCL_DIR})
 endforeach()
@@ -37,6 +42,7 @@ endforeach()
 target_compile_definitions(miniFE.kokkos PRIVATE MINIFE_SCALAR=${MINIFE_SCALAR})
 target_compile_definitions(miniFE.kokkos PRIVATE MINIFE_LOCAL_ORDINAL=${MINIFE_LOCAL_ORDINAL})
 target_compile_definitions(miniFE.kokkos PRIVATE MINIFE_GLOBAL_ORDINAL=${MINIFE_GLOBAL_ORDINAL})
+target_compile_definitions(miniFE.kokkos PRIVATE HAVE_KOKKOS_COMM)
 message(STATUS "MINIFE_SCALAR=${MINIFE_SCALAR}")
 message(STATUS "MINIFE_LOCAL_ORDINAL=${MINIFE_LOCAL_ORDINAL}")
 message(STATUS "MINIFE_GLOBAL_ORDINAL=${MINIFE_GLOBAL_ORDINAL}")

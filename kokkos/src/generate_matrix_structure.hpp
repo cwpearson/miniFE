@@ -39,9 +39,6 @@
 #include <box_utils.hpp>
 #include <utils.hpp>
 #include <Minife_Kokkos_Vector.hpp>
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
 
 namespace miniFE {
 
@@ -140,10 +137,7 @@ int
 generate_matrix_structure(const simple_mesh_description<typename MatrixType::GlobalOrdinalType>& mesh,
                           MatrixType& A)
 {
-  int myproc = 0;
-#ifdef HAVE_MPI
-  MPI_Comm_rank(MPI_COMM_WORLD, &myproc);
-#endif
+  int myproc = this_rank();
 
   int threw_exc = 0;
   try {
@@ -163,9 +157,9 @@ generate_matrix_structure(const simple_mesh_description<typename MatrixType::Glo
     std::cout << "proc " << myproc << " threw an exception in generate_matrix_structure, probably due to running out of memory." << std::endl;
     threw_exc = 1;
   }
-#ifdef HAVE_MPI
+#ifdef HAVE_KOKKOS_COMM
   int global_throw = 0;
-  MPI_Allreduce(&threw_exc, &global_throw, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  allreduce(&threw_exc, &global_throw, 1, KokkosComm::Sum{});
   threw_exc = global_throw;
 #endif
   if (threw_exc) {
@@ -178,4 +172,3 @@ generate_matrix_structure(const simple_mesh_description<typename MatrixType::Glo
 }//namespace miniFE
 
 #endif
-

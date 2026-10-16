@@ -33,10 +33,6 @@
 #include <sstream>
 #include <fstream>
 
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
-
 #ifdef MINIFE_HAVE_TBB
 #include <LockingVector.hpp>
 #endif
@@ -52,11 +48,8 @@ template<typename VectorType>
 void write_vector(const std::string& filename,
                   const VectorType& vec)
 {
-  int numprocs = 1, myproc = 0;
-#ifdef HAVE_MPI
-  MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-  MPI_Comm_rank(MPI_COMM_WORLD, &myproc);
-#endif
+  int numprocs = num_ranks();
+  int myproc = this_rank();
 
   std::ostringstream osstr;
   osstr << filename << "." << numprocs << "." << myproc;
@@ -76,8 +69,8 @@ void write_vector(const std::string& filename,
         ofs << first+i << " " << vec.coefs[i] << std::endl;
       }
     }
-#ifdef HAVE_MPI
-    MPI_Barrier(MPI_COMM_WORLD);
+#ifdef HAVE_KOKKOS_COMM
+    sync_ranks();
 #endif
   }
 }
@@ -172,16 +165,10 @@ typename TypeTraits<typename Vector::ScalarType>::magnitude_type
 
   typedef typename Vector::ScalarType Scalar;
   typedef typename TypeTraits<typename Vector::ScalarType>::magnitude_type magnitude;
-  
 
   magnitude result = Kokkos::V_Dot(x.coefs.d_view,y.coefs.d_view,n);
-  //printf("%e %e\n",result,result - (double) ((int)(result*1e6))*1e-6);
-
-#ifdef HAVE_MPI
-  magnitude local_dot = result, global_dot = 0;
-  MPI_Datatype mpi_dtype = TypeTraits<magnitude>::mpi_type();  
-  MPI_Allreduce(&local_dot, &global_dot, 1, mpi_dtype, MPI_SUM, MPI_COMM_WORLD);
-  return global_dot;
+#ifdef HAVE_KOKKOS_COMM
+  return allreduce_scalar(result, KokkosComm::Sum{});
 #else
   return result;
 #endif

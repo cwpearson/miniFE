@@ -35,10 +35,6 @@
 
 #include <outstream.hpp>
 
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
-
 #include <Box.hpp>
 #include <BoxPartition.hpp>
 #include <box_utils.hpp>
@@ -86,6 +82,11 @@ int main(int argc, char** argv) {
   miniFE::initialize_mpi(argc, argv, numprocs, myproc);
 
   Kokkos::initialize(argc,argv);
+#ifdef HAVE_KOKKOS_COMM
+  miniFE::initialize_comm(params, numprocs, myproc);
+  numprocs = miniFE::num_ranks();
+  myproc = miniFE::this_rank();
+#endif
 
   if(myproc==0) {
     std::cout << "MiniFE Mini-App, Kokkos Peer Implementation" << std::endl;
@@ -112,14 +113,16 @@ int main(int argc, char** argv) {
   MINIFE_GLOBAL_ORDINAL num_my_ids = miniFE::get_num_ids<MINIFE_GLOBAL_ORDINAL>(my_box);
   MINIFE_GLOBAL_ORDINAL min_ids = num_my_ids;
 
-#ifdef HAVE_MPI
-  MPI_Datatype mpi_dtype = miniFE::TypeTraits<MINIFE_GLOBAL_ORDINAL>::mpi_type();
-  MPI_Allreduce(&num_my_ids, &min_ids, 1, mpi_dtype, MPI_MIN, MPI_COMM_WORLD);
+#ifdef HAVE_KOKKOS_COMM
+  min_ids = miniFE::allreduce_scalar(num_my_ids, KokkosComm::Min{});
 #endif
 
   if (min_ids == 0) {
     std::cout<<"One or more processors have 0 equations. Not currently supported. Exiting."<<std::endl;
 
+#ifdef HAVE_KOKKOS_COMM
+    miniFE::finalize_comm();
+#endif
     miniFE::finalize_mpi();
 
     return 1;
@@ -158,6 +161,9 @@ int main(int argc, char** argv) {
 
   Kokkos::finalize();
 
+#ifdef HAVE_KOKKOS_COMM
+  miniFE::finalize_comm();
+#endif
   miniFE::finalize_mpi();
 
   return return_code;
@@ -221,4 +227,3 @@ void add_timestring_to_yaml(YAML_Doc& doc)
   std::string timestring = osstr.str();
   doc.add("Run Date/Time",timestring);
 }
-

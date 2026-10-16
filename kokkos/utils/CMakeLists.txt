@@ -1,5 +1,6 @@
 list(APPEND MINIFE_SRCS 
   ${CMAKE_CURRENT_LIST_DIR}/BoxPartition.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/comm.cpp
   ${CMAKE_CURRENT_LIST_DIR}/mytimer.cpp
   ${CMAKE_CURRENT_LIST_DIR}/param_utils.cpp
   ${CMAKE_CURRENT_LIST_DIR}/utils.cpp

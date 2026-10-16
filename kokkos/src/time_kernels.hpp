@@ -45,9 +45,9 @@ template<typename OperatorType,
          typename Matvec>
 void
 time_kernels(OperatorType& A,
-             const VectorType& b,
-             VectorType& x,
-             Matvec matvec,
+              const VectorType& b,
+              VectorType& x,
+              Matvec matvec,
              typename OperatorType::LocalOrdinalType max_iter,
              typename OperatorType::ScalarType& xdotp,
              timer_type* my_kern_times)
@@ -58,10 +58,7 @@ time_kernels(OperatorType& A,
 
   timer_type t0 = 0, tWAXPY = 0, tDOT = 0, tMATVEC = 0;
 
-  int myproc = 0;
-#ifdef HAVE_MPI
-  MPI_Comm_rank(MPI_COMM_WORLD, &myproc);
-#endif
+  int myproc = this_rank();
 
   if (!A.has_local_indices) {
     std::cerr << "miniFE::time_kernels ERROR, A.has_local_indices is false, needs to be true. This probably means "
@@ -137,4 +134,3 @@ time_kernels(OperatorType& A,
 }//namespace miniFE
 
 #endif
-
